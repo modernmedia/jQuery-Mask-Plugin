@@ -215,21 +215,18 @@
 
                 if ($.inArray(keyCode, jMask.byPassKeys) === -1) {
                     var newVal   = p.getMasked(),
-                        caretPos = p.getCaret(),
-                        caretPos = p.newcaret || caretPos;
+                        caretPos = p.getCaret();
 
                     if ($.jMaskGlobals.isAndroid) {
-                        setTimeout(function(caretPos) {
-                            p.setCaret(caretPos);
-                        }, 10, caretPos);
+                        setTimeout(function(caretPos, newVal) {
+                            p.setCaret(p.calculateCaretPosition(caretPos, newVal));
+                        }, 10, caretPos, newVal);
                     } else {
-                        p.setCaret(caretPos);
+                        p.setCaret(p.calculateCaretPosition(caretPos, newVal));
                     }
 
                     p.val(newVal);
                     p.setCaret(caretPos);
-                    p.newcaret = null;
-
                     return p.callbacks(e);
                 }
             },
@@ -241,8 +238,7 @@
                     offset = 1, addMethod = 'push',
                     resetPos = -1,
                     lastMaskChar,
-                    check,
-                    caretPos = p.getCaret();
+                    check;
 
                 if (options.reverse) {
                     addMethod = 'unshift';
@@ -298,10 +294,6 @@
                         }
                         v += offset;
                     } else {
-                        if (buf.length + 1 === caretPos && value.length !== caretPos + 1) {
-                            p.newcaret = caretPos + 1;
-                        }
-
                         if (!skipMaskChars) {
                             buf[addMethod](maskDigit);
                         }
