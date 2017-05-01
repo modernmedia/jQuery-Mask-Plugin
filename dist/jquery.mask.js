@@ -215,14 +215,21 @@
 
                 if ($.inArray(keyCode, jMask.byPassKeys) === -1) {
                     var newVal   = p.getMasked(),
-                        caretPos = p.getCaret();
+                        caretPos = p.getCaret(),
+                        caretPos = p.newcaret || caretPos;
 
-                    setTimeout(function(caretPos, newVal) {
-                      p.setCaret(p.calculateCaretPosition(caretPos, newVal));
-                    }, 10, caretPos, newVal);
+                    if ($.jMaskGlobals.isAndroid) {
+                        setTimeout(function(caretPos) {
+                            p.setCaret(caretPos);
+                        }, 10, caretPos);
+                    } else {
+                        p.setCaret(caretPos);
+                    }
 
                     p.val(newVal);
                     p.setCaret(caretPos);
+                    p.newcaret = null;
+
                     return p.callbacks(e);
                 }
             },
@@ -234,7 +241,8 @@
                     offset = 1, addMethod = 'push',
                     resetPos = -1,
                     lastMaskChar,
-                    check;
+                    check,
+                    caretPos = p.getCaret();
 
                 if (options.reverse) {
                     addMethod = 'unshift';
@@ -290,6 +298,10 @@
                         }
                         v += offset;
                     } else {
+                        if (buf.length + 1 === caretPos && value.length !== caretPos + 1) {
+                            p.newcaret = caretPos + 1;
+                        }
+
                         if (!skipMaskChars) {
                             buf[addMethod](maskDigit);
                         }
@@ -511,6 +523,7 @@
         dataMask: true,
         watchInterval: 300,
         watchInputs: true,
+        isAndroid: window.navigator.userAgent.toLowerCase().indexOf('android') > -1,
         // old versions of chrome dont work great with input event
         useInput: !/Chrome\/[2-4][0-9]|SamsungBrowser/.test(window.navigator.userAgent) && eventSupported('input'),
         watchDataMask: false,
@@ -538,4 +551,3 @@
         }
     }, globals.watchInterval);
 }, window.jQuery, window.Zepto));
-
